@@ -1,7 +1,7 @@
 {
-  "name": "stripe-demo",
+  "name": "node-express-di",
   "version": "1.0.0",
-  "description": "Stripe Demo",
+  "description": "Dependency Injection testing using node+express",
   "main": "src",
   "scripts": {
     "start": "nodemon --exec babel-node src"
