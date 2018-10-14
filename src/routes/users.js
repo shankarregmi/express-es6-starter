@@ -1,18 +1,11 @@
 import { Router } from 'express';
 
 class UserRoutes extends Router  {
-    constructor() {
+    constructor(app) {
         super();
-        this.get('/', (req, res, next) => {
-            res.json({
-                status: true,
-                data: [{
-                    _id: 1,
-                    username: 'shankar',
-                    email: 'shankarregmi@gmail.com'
-                }]
-            });
-        })
+        const {users} = app.controllers;
+        this.get('/', users.find);
+        this.post('/', users.create);
     }
 };
 

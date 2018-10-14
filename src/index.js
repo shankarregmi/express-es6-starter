@@ -3,9 +3,10 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 
 import Config from '../config';
-import Routes from './routes';
+import Controllers from './controllers';
 import Models from './models';
-
+import Routes from './routes';
+import Utils from './utils';
 
 class Main {
   constructor() {
@@ -14,15 +15,20 @@ class Main {
     this.config = new Config().default;
   }
   async init() {
+    await this.initUtils();
     await this.initMiddleware();
-    await this.initRoutes();
     await this.initDb();
-    
+    await this.initControllers();
+    await this.initRoutes();
+
     this.app.listen(this.PORT, () => {
       console.log(`App running on port ${this.PORT}`);
     });
   }
-
+  initUtils() {
+    const utils = new Utils(this);
+    utils.init();
+  }
   async initMiddleware() {
     // define middlewares, orders do matters
     [
@@ -31,16 +37,20 @@ class Main {
     ].forEach(middleware => this.app.use(middleware));
 
   }
-  async initRoutes() {
-    new Routes(this.app);
-  }
-
   async initDb() {
-    const models = new Models();
+    const models = new Models(this);
     await mongoose.connect(this.config.db, {
       useNewUrlParser: true,
     });
     models.init();
+  }
+  async initControllers() {
+    const controllers = new Controllers(this);
+    controllers.init();
+  }
+  async initRoutes() {
+    const routes = new Routes(this);
+    routes.init();
   }
 };
 

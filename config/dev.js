@@ -1,3 +1,3 @@
 export default {
-    db: 'mongodb://localhost/stripeDemo',
+    db: 'mongodb://localhost/app',
 };
