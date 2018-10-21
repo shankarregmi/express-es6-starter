@@ -1,24 +1,19 @@
-'use strict';
-import fs from 'fs';
-import mongoose from 'mongoose';
-import path from 'path';
+import requireDirectory from 'require-directory';
 
 class Models {
     constructor(app) {
         this.app = app;
+        this.app.db = {};
     }
-    init() {
-        const db = {};
-        fs.readdirSync(__dirname)
-            .filter(file => (file.indexOf('.') !== 0) && (file !== __filename) && (file.slice(-3) === '.js'))
-            .forEach(file => {
-                require(path.join(__dirname, file));
-            });
-
-        Object.keys(mongoose.models).forEach((modelName) => {
-            db[modelName] = mongoose.model(modelName)
+    init = () => {
+        const models = requireDirectory(module, {
+            include: /.model.js$/,
+            visit: value => value.default,
+            rename: name => name.replace('.model', '').replace(/^\w/, c => c.toUpperCase())
         });
-        this.app.db = db;
+        for (const model in models) {
+            this.app.db[model] = models[model];
+        }
     }
 };
 

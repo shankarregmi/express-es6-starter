@@ -1,10 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+
 class Utils {
     constructor(app){
         this.app = app;
     }
-    init() {
+    init = () => {
         const utils = {};
         fs.readdirSync(__dirname)
             .filter(file => (file.indexOf('.') !== 0) && (file !== path.basename(__filename)) && (file.slice(-3) === '.js'))

@@ -1,20 +1,19 @@
-import Users from './users';
+import requireDirectory from 'require-directory';
 
 class Routes {
     constructor(app) {
         this.app = app;
     }
-    init() {
-        // unpack express app
-        const { app } = this.app;
-        app.use((req, res, next) => {
-            console.log(`${req.method} ${req.url}`);
-            next();
+    init = () => {
+        const { app } = this.app; // express app `this.app.app`
+        const routes = requireDirectory(module, {
+            include: /.routes.js$/,
+            visit: value => value.default,
+            rename: name => name.replace('.routes', '')
         });
-        app.use('/users', new Users(this.app));
-        app.use('/', (req, res) => {
-            res.send(`<h4>App is running</h4>`);
-        });
+        for (const route in routes) {
+            app.use(`/${route}`, new routes[route](this.app));
+        }
     }
 };
 

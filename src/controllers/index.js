@@ -1,21 +1,19 @@
-'use strict';
-import fs from 'fs';
-import path from 'path';
+import requireDirectory from 'require-directory';
 
 class Controllers {
     constructor(app) {
         this.app = app;
+        this.app.controllers = {};
     }
-    init() {
-        const controllers = {};
-        fs.readdirSync(__dirname)
-            .filter(dir => {
-                if (fs.statSync(path.join(__dirname, dir)).isDirectory()) {
-                    const Klass =require(path.join(__dirname, dir, 'index.js'));
-                    controllers[dir] = new Klass.default();
-                }
-            });
-        this.app.controllers = controllers;
+    init = () => {
+        const controllers = requireDirectory(module, {
+            include: /.controller.js$/,
+            visit: value => value.default,
+            rename: name => name.replace(/^\w/, c => c.toUpperCase())
+        });
+        for (const ctl in controllers) {
+            this.app.controllers[ctl] = new controllers[ctl][`${ctl}.controller`](this.app);
+        }
     }
 };
 

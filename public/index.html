@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Stripe Test</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="/socket.io/socket.io.js"></script>
+	<!-- <link rel="stylesheet" href="http://summerstyle.github.io/jsonTreeViewer/libs/jsonTree/jsonTree.css">
+	<script src="http://summerstyle.github.io/jsonTreeViewer/libs/jsonTree/jsonTree.js"></script> -->
+</head>
+
+<body>
+	<h1>Stripe Test</h1>
+
+	<div>
+		<h2>Create a Source</h2>
+		<input id="owner.name" type="text" placeholder="name">
+		<input id="owner.email" type="text" placeholder="email">
+		<button id="createSource" onclick="createSource()">Create</button>
+		<hr>
+		<div id='source.created'></div>
+		<div id='source.transaction.created'></div>
+		<div id='source.chargeable'></div>
+	</div>
+</body>
+<script>
+	// connect to socket
+	const socket = io();
+	
+	socket.on('source.transaction.created', (body) => {
+		console.log('transaction created received', body);
+		const message = `${body.data.data.object.sepa_credit_transfer.sender_name} transferred money from ${body.data.data.object.sepa_credit_transfer.sender_iban} `;
+		document.getElementById('source.transaction.created').innerHTML = message;
+	});
+	socket.on('source.chargeable', (body) => {
+		console.log('source chargeable received', body);
+		const message = `${body.data.data.object.receiver.amount_received/100}€ received from ${body.data.data.object.sepa_credit_transfer.bank_name} `;
+		document.getElementById('source.chargeable').innerHTML = message;
+	});
+	function api(endpoint, method, data) {
+		return new Promise(resolve => {
+			const opts = {
+				method,
+				headers: {
+					'Content-Type': 'application/json; charset=utf-8',
+					'Authorization': socket.id
+				},
+				body: JSON.stringify(data)
+			}
+			fetch(endpoint, opts).then(source => resolve(source.json()));
+		})
+	}
+	async function createSource() {
+		const name = document.getElementById('owner.name').value;
+		const email = document.getElementById('owner.email').value;
+		if (name, email) {
+			const source = await api('/stripe', 'POST', {name, email} );
+			document.getElementById('source.created').innerHTML = `New Source created: ${source.iban}`
+		}
+
+	}
+
+</script>
+
+</html>

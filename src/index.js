@@ -1,6 +1,8 @@
-import express from 'express';
-import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
+import express from 'express';
+import http from 'http';
+import io from 'socket.io';
+import mongoose from 'mongoose';
 
 import Config from '../config';
 import Controllers from './controllers';
@@ -12,7 +14,10 @@ class Main {
   constructor() {
     this.PORT = process.env.PORT || 3030;
     this.app = express();
+    this.server = http.createServer(this.app);
+    this.socketIO = io.listen(this.server);
     this.config = new Config().default;
+    this.sockets = {};
   }
   async init() {
     await this.initUtils();
@@ -21,8 +26,11 @@ class Main {
     await this.initControllers();
     await this.initRoutes();
 
-    this.app.listen(this.PORT, () => {
+    this.server.listen(this.PORT, () => {
       console.log(`App running on port ${this.PORT}`);
+    });
+    this.socketIO.on('connection', (socket) => {
+        this.sockets[socket.id] = socket;
     });
   }
   initUtils() {
