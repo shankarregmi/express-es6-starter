@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import get from 'lodash/get';
 
 class StripeController {
     constructor(app) {
@@ -7,53 +8,87 @@ class StripeController {
         this.stripe = new Stripe(secret);
     }
     get = async (req, res) => {
-        res.json('stripe running.');
+        // const customer = await this.stripe.customers.list({email: 'shankar.regmi@homelike.cc'});
+        res.json(customer);
     }
-    create = async(req, res) => {
+    create = async (req, res) => {
         const { name, email } = req.body;
-        // const { headers: {authorization} } = req;
-        // console.log('Authorization', req.headers.authorization);
-        // if (authorization) {
-        //     console.log(Object.keys(this.app.sockets));
-            
-        //     this.app.sockets[authorization].emit('source.charged', {name, email});
-        // }
-        // res.json(true);
-        
-        
-        try {
-            const source = await this.stripe.sources.create({
-              type: "sepa_credit_transfer",
-              currency: "eur",
-              owner: {
-                name,
-                email
-              },
-            });
-            res.json({
-                iban: source.sepa_credit_transfer.iban
-            })
-          } catch (error) {
-            console.log(`Something bad happened, ${error.message}`);
-            res.json({
-                error
-            });
-          }
-    }
-    webhook = async (req, res) => {
-        const { type } = req.body;
-        const {data: {object}} = req.body.
-        this.app.socketIO.emit(type, {data: req.body});
-        if (type === 'source.chargeable') {
-            console.log('do you want to charge the source');
-            
-            // this.stripe.customers.create({
-            //     email: object.owner.email,
-            //     name: 
-            // })
+        const { headers: { authorization } } = req;
+        if (authorization && name && email) {
+            try {
+                const source = await this.stripe.sources.create({
+                    type: "sepa_credit_transfer",
+                    currency: "eur",
+                    owner: {
+                        name,
+                        email
+                    },
+                    metadata: {
+                        authorization
+                    }
+                });
+                const customer = await this.stripe.customers.create({
+                    source: source.id,
+                    description: name,
+                    email,
+                    metadata: {
+                        authorization
+                    }
+                });
+                const iban = get(source, 'sepa_credit_transfer.iban');
+                res.json({
+                    id: source.id,
+                    iban,
+                    customer: customer.id
+                });
+            } catch (error) {
+                console.log(`Something bad happened, ${error.message}`);
+                res.json({
+                    error
+                });
+            }
         }
-        res.status(200).json({ status: true });
+
+    }
+    charge = async(req, res) => {
+        console.log('trying to charge :', req.body);
+        const {customer, id} = req.body;
+
+        const action = await this.stripe.charges.create({
+            amount: 1000,
+            currency: 'eur',
+            customer,
+            source: id
+        });
+        res.json(action);
+    }
+
+    webhook = async (req, res) => {
+        const webhookbody = req.body;
+        console.log(JSON.stringify(webhookbody));
+        console.log('///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////');
         
+        const payload = get(webhookbody, 'data.object');
+        const type = get(webhookbody, 'type');
+        switch (type) {
+            case 'source.transaction.created':
+                this.app.socketIO.emit(type, payload);
+                res.status(200).json({ status: true });
+                break;
+            case 'source.chargeable':
+                // attach the source to customer before 
+                this.app.socketIO.emit(type, payload);
+                res.status(200).json({ status: true });
+                break;
+            case 'charge.succeeded':
+                // attach the source to customer before 
+                this.app.socketIO.emit(type, payload);
+                res.status(200).json({ status: true });
+                break;
+            default:
+                res.status(200).json({ status: true });
+                break;
+        }
     }
 }
 

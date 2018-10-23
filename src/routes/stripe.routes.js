@@ -3,11 +3,12 @@ import { Router } from 'express';
 class StripeRoutes extends Router  {
     constructor(app) {
         super();
-        const { stripe } = app.controllers;
+        const { Stripe } = app.controllers;
         
-        // this.get('/', stripe.get);
-        // this.post('/', stripe.create);
-        // this.post('/webhook', stripe.webhook);
+        this.get('/', Stripe.get);
+        this.post('/', Stripe.create);
+        this.post('/charge', Stripe.charge);
+        this.post('/webhook', Stripe.webhook);
     }
 };
 

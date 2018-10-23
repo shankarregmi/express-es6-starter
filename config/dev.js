@@ -1,6 +1,6 @@
 export default {
     db: 'mongodb://localhost/app',
     stripe: {
-        secret: 'stripe_secret_key'
+        secret: 'sk_test_hyiIOUIE8nOoibNNo32asdv3RE'
     }
 };
