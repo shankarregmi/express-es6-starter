@@ -8,7 +8,7 @@ class StripeController {
         this.stripe = new Stripe(secret);
     }
     get = async (req, res) => {
-        // const customer = await this.stripe.customers.list({email: 'shankar.regmi@homelike.cc'});
+        const customer = {};
         res.json(customer);
     }
     create = async (req, res) => {
@@ -67,7 +67,7 @@ class StripeController {
         const webhookbody = req.body;
         console.log(JSON.stringify(webhookbody));
         console.log('///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////');
-        
+
         const payload = get(webhookbody, 'data.object');
         const type = get(webhookbody, 'type');
         switch (type) {
@@ -76,12 +76,12 @@ class StripeController {
                 res.status(200).json({ status: true });
                 break;
             case 'source.chargeable':
-                // attach the source to customer before 
+                // attach the source to customer before
                 this.app.socketIO.emit(type, payload);
                 res.status(200).json({ status: true });
                 break;
             case 'charge.succeeded':
-                // attach the source to customer before 
+                // attach the source to customer before
                 this.app.socketIO.emit(type, payload);
                 res.status(200).json({ status: true });
                 break;
