@@ -14,6 +14,9 @@ class Routes {
         for (const route in routes) {
             app.use(`/${route}`, new routes[route](this.app));
         }
+        app.use('*', (req, res) => {
+          res.sendFile('index.html', {'root': `${__dirname}/../../public`});
+        });
     }
 };
 
