@@ -13,6 +13,6 @@ jobs:
           name: tests
           command: npm test
       - deploy:
-          command: docker build -t .
+          command: docker build -t shankar .
 
 
