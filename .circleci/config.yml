@@ -1,6 +1,7 @@
 version: 2
 jobs:
   build:
+    working_directory: ~/node-express-di
     docker:
       - image: circleci/node:8
       - image: circleci/mongo:3
