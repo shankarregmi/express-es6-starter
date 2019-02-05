@@ -13,7 +13,8 @@ jobs:
       - run:
           name: tests
           command: npm test
-      - deploy:
-          command: docker build -t node-express -f ./Dockerfile .
+      - run:
+          name: docker build image
+          command: docker build -t node-express:$CIRCLE_BRANCH .
 
 
