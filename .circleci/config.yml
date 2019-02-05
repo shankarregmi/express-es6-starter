@@ -13,8 +13,6 @@ jobs:
           name: tests
           command: npm test
       - deploy:
-          command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              echo "Successful"
-            fi
+          command: docker build -t .
+
 
