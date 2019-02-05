@@ -12,6 +12,9 @@ jobs:
       - run:
           name: tests
           command: npm test
-      - start:
-          name: run the app
-          command: npm start
+      - deploy:
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              echo "Successful"
+            fi
+
